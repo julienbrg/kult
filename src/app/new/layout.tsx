@@ -1,20 +1,20 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'New Page | Genji',
+  title: 'New Page | Kult',
   description: 'Unleash your imagination in this new page!',
 
   openGraph: {
-    title: 'New Page | Genji',
+    title: 'New Page | Kult',
     description: 'Unleash your imagination in this new page!',
-    url: 'https://genji-app.netlify.app/new',
-    siteName: 'Genji',
+    url: 'https://kult-app.netlify.app/new',
+    siteName: 'Kult',
     images: [
       {
         url: '/huangshan.png',
         width: 1200,
         height: 630,
-        alt: 'Genji Web3 Application - New Page',
+        alt: 'Store the books, movies and artworks you loved!',
       },
     ],
     locale: 'en_US',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 
   twitter: {
     card: 'summary_large_image',
-    title: 'New Page | Genji',
+    title: 'New Page | Kult',
     description: 'Unleash your imagination in this new page!',
     images: ['/huangshan.png'],
   },

@@ -51,9 +51,9 @@ createAppKit({
   ],
   defaultNetwork: sepolia,
   metadata: {
-    name: 'Genji',
+    name: 'Kult',
     description: 'Next.js + Web3 Modal + Ethers.js + Chakra UI',
-    url: 'https://genji-app.netlify.app',
+    url: 'https://kult-app.netlify.app',
     icons: ['./favicon.ico'],
   },
   enableEIP6963: true,
