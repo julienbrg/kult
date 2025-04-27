@@ -69,7 +69,7 @@ export default function Header() {
         >
           <Link href="/">
             <Heading as="h3" size="md" textAlign="center">
-              Genji
+              Kult
             </Heading>
           </Link>
         </Box>
@@ -123,12 +123,6 @@ export default function Header() {
             <MenuList>
               <Link href="/new" color="white">
                 <MenuItem fontSize="md">{t.navigation.newPage}</MenuItem>
-              </Link>
-              <Link href="/wallet" color="white">
-                <MenuItem fontSize="md">{t.navigation.walletGenerator}</MenuItem>
-              </Link>
-              <Link href="/referral" color="white">
-                <MenuItem fontSize="md">{t.navigation.referral}</MenuItem>
               </Link>
             </MenuList>
           </Menu>
