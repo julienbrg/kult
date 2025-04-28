@@ -52,7 +52,7 @@ createAppKit({
   defaultNetwork: sepolia,
   metadata: {
     name: 'Kult',
-    description: 'Next.js + Web3 Modal + Ethers.js + Chakra UI',
+    description: 'Store the books, movies and artworks you loved!',
     url: 'https://kult-app.netlify.app',
     icons: ['./favicon.ico'],
   },

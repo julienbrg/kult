@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useTranslation } from '@/hooks/useTranslation'
 
-export default function NewPage() {
+export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [txLink, setTxLink] = useState<string>()
   const [txHash, setTxHash] = useState<string>()
@@ -42,10 +42,12 @@ export default function NewPage() {
         <VStack spacing={6} align="stretch">
           <header>
             <Heading as="h1" size="xl" mb={2}>
-              {t.newPage.title}
+              {/* {t.newPage.title} */}
+              Settings
             </Heading>
             <Text fontSize="lg" color="gray.400">
-              {t.newPage.subtitle}
+              {/* {t.newPage.subtitle} */}
+              There you can config everything!
             </Text>
           </header>
 

@@ -4,12 +4,12 @@ export const metadata: Metadata = {
   title: 'Kult',
   description: 'Store the books, movies and artworks you loved!',
 
-  keywords: ['Web3', 'Next.js', 'Ethereum', 'DApp', 'Blockchain', 'Wallet'],
+  keywords: ['Books', 'Movies', 'Artworks'],
   authors: [{ name: 'Julien', url: 'https://github.com/julienbrg' }],
 
   openGraph: {
     title: 'Kult',
-    description: 'Next.js + Web3 Modal + Ethers.js + Chakra UI',
+    description: 'Store the books, movies and artworks you loved!',
     url: 'https://kult-app.netlify.app',
     siteName: 'Kult',
     images: [

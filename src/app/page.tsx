@@ -1,6 +1,6 @@
 'use client'
 
-import { Container, Text, useToast, Button, Tooltip } from '@chakra-ui/react'
+import { Container, Text, useToast, Button, Tooltip, Box } from '@chakra-ui/react'
 import { useAppKitAccount, useAppKitNetwork, useAppKitProvider } from '@reown/appkit/react'
 import { BrowserProvider, parseEther, formatEther } from 'ethers'
 import { useState, useEffect } from 'react'
@@ -9,119 +9,126 @@ import { useTranslation } from '@/hooks/useTranslation'
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
-  const [txLink, setTxLink] = useState<string>()
-  const [txHash, setTxHash] = useState<string>()
-  const [balance, setBalance] = useState<string>('0')
+  const [userStatus, setUserStatus] = useState<{ exists: boolean; paying?: boolean } | null>(null)
+  const [checkingStatus, setCheckingStatus] = useState(false)
+  const [isCreatingUser, setIsCreatingUser] = useState(false)
 
   const { address, isConnected } = useAppKitAccount()
   const { walletProvider } = useAppKitProvider('eip155')
   const toast = useToast()
   const t = useTranslation()
 
-  useEffect(() => {
-    const checkBalance = async () => {
-      if (address && walletProvider) {
-        try {
-          const provider = new BrowserProvider(walletProvider as any)
-          const balance = await provider.getBalance(address)
-          setBalance(formatEther(balance))
-        } catch (error) {
-          console.error('Error fetching balance:', error)
-        }
-      }
-    }
+  // Create user function
+  const createUser = async () => {
+    if (!address) return
 
-    checkBalance()
-  }, [address, walletProvider])
-
-  const handleSend = async () => {
-    setTxHash('')
-    setTxLink('')
-    if (!address || !walletProvider) {
-      toast({
-        title: t.common.error,
-        description: t.home.notConnected,
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      })
-      return
-    }
-
-    setIsLoading(true)
+    setIsCreatingUser(true)
     try {
-      const provider = new BrowserProvider(walletProvider as any)
-      const signer = await provider.getSigner()
-
-      const tx = await signer.sendTransaction({
-        to: address,
-        value: parseEther('0.0001'),
+      const response = await fetch('/api/user/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ walletAddress: address }),
       })
 
-      const receipt = await tx.wait(1)
+      const data = await response.json()
 
-      setTxHash(receipt?.hash)
-      setTxLink('https://sepolia.etherscan.io/tx/' + receipt?.hash)
+      if (response.ok) {
+        toast({
+          title: 'Welcome!',
+          description: 'Your account has been created successfully.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        })
 
-      toast({
-        title: t.common.success,
-        description: `${t.home.transactionSuccess}: 0.0001 ETH to ${address}`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      })
+        // Update the user status after creation
+        setUserStatus({ exists: true, paying: false })
+      } else {
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to create user account.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        })
+      }
     } catch (error) {
-      console.error('Transaction failed:', error)
+      console.error('Error creating user:', error)
       toast({
-        title: t.home.transactionFailed,
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        title: 'Error',
+        description: 'Failed to create user account. Please try again.',
         status: 'error',
         duration: 5000,
         isClosable: true,
       })
     } finally {
-      setIsLoading(false)
+      setIsCreatingUser(false)
     }
   }
 
-  const hasEnoughBalance = Number(balance) >= 0.0001
+  useEffect(() => {
+    const checkUserStatus = async () => {
+      if (address) {
+        setCheckingStatus(true)
+        try {
+          console.log('useEffect address:', address)
+          const response = await fetch(`/api/user/check?address=${address}`)
+          const data = await response.json()
+          setUserStatus(data)
+
+          // If user doesn't exist and we have an address, create them automatically
+          if (data && !data.exists) {
+            await createUser()
+          }
+        } catch (error) {
+          console.error('Error checking user status:', error)
+          setUserStatus(null)
+        } finally {
+          setCheckingStatus(false)
+        }
+      } else {
+        setUserStatus(null)
+      }
+    }
+
+    if (isConnected) {
+      checkUserStatus()
+    }
+  }, [address, isConnected])
 
   return (
     <Container maxW="container.sm" py={20}>
-      <Text mb={4}>{t.home.title}</Text>
       {isConnected && (
-        <Tooltip
-          label={!hasEnoughBalance ? t.home.insufficientBalance : ''}
-          isDisabled={hasEnoughBalance}
-          hasArrow
-          bg="black"
-          color="white"
-          borderWidth="1px"
-          borderColor="red.500"
-          borderRadius="md"
-          p={2}
-        >
-          <Button
-            onClick={handleSend}
-            isLoading={isLoading}
-            loadingText={t.common.loading}
-            bg="#45a2f8"
-            color="white"
-            _hover={{
-              bg: '#3182ce',
-            }}
-            isDisabled={!hasEnoughBalance}
-          >
-            {t.home.sendEth}
-          </Button>
-        </Tooltip>
-      )}
-      {txHash && isConnected && (
-        <Text py={4} fontSize="14px" color="#45a2f8">
-          <Link target="_blank" rel="noopener noreferrer" href={txLink ? txLink : ''}>
-            {txHash}
-          </Link>
-        </Text>
+        <Box mb={4} p={4} borderWidth="1px" borderRadius="md" borderColor="whiteAlpha.300">
+          {checkingStatus || isCreatingUser ? (
+            <Text>{isCreatingUser ? 'Setting up your account...' : 'Checking status...'}</Text>
+          ) : userStatus ? (
+            userStatus.exists ? (
+              <Text>
+                You are a happy user!
+                {/* {userStatus.paying !== undefined &&
+                  ` Paying status: ${userStatus.paying ? 'Active' : 'Inactive'}`} */}
+              </Text>
+            ) : (
+              <Box>
+                <Text mb={2}>It seems like you&apos;re not a user... Nobody&apos;s perfect!</Text>
+                <Button
+                  size="sm"
+                  colorScheme="purple"
+                  onClick={createUser}
+                  isLoading={isCreatingUser}
+                  loadingText="Creating account..."
+                >
+                  Create Account
+                </Button>
+              </Box>
+            )
+          ) : (
+            <Text>Could not retrieve your status. Sorry for that!</Text>
+          )}
+        </Box>
       )}
     </Container>
   )

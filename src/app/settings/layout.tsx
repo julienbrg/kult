@@ -1,13 +1,13 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'New Page | Kult',
+  title: 'Settings | Kult',
   description: 'Unleash your imagination in this new page!',
 
   openGraph: {
-    title: 'New Page | Kult',
+    title: 'Settings | Kult',
     description: 'Unleash your imagination in this new page!',
-    url: 'https://kult-app.netlify.app/new',
+    url: 'https://kult-app.netlify.app/settings',
     siteName: 'Kult',
     images: [
       {
