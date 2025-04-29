@@ -1,11 +1,22 @@
 'use client'
 
-import { Container, Text, useToast, Button, Tooltip, Box } from '@chakra-ui/react'
+import {
+  Container,
+  Text,
+  useToast,
+  Button,
+  Tooltip,
+  Box,
+  VStack,
+  Heading,
+  Divider,
+} from '@chakra-ui/react'
 import { useAppKitAccount, useAppKitNetwork, useAppKitProvider } from '@reown/appkit/react'
 import { BrowserProvider, parseEther, formatEther } from 'ethers'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useTranslation } from '@/hooks/useTranslation'
+import ArtworkList from '@/components/ArtworkList'
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
@@ -78,7 +89,6 @@ export default function Home() {
           const data = await response.json()
           setUserStatus(data)
 
-          // If user doesn't exist and we have an address, create them automatically
           if (data && !data.exists) {
             await createUser()
           }
@@ -99,37 +109,35 @@ export default function Home() {
   }, [address, isConnected])
 
   return (
-    <Container maxW="container.sm" py={20}>
-      {isConnected && (
-        <Box mb={4} p={4} borderWidth="1px" borderRadius="md" borderColor="whiteAlpha.300">
-          {checkingStatus || isCreatingUser ? (
-            <Text>{isCreatingUser ? 'Setting up your account...' : 'Checking status...'}</Text>
-          ) : userStatus ? (
-            userStatus.exists ? (
-              <Text>
-                You are a happy user!
-                {/* {userStatus.paying !== undefined &&
-                  ` Paying status: ${userStatus.paying ? 'Active' : 'Inactive'}`} */}
-              </Text>
-            ) : (
-              <Box>
-                <Text mb={2}>It seems like you&apos;re not a user... Nobody&apos;s perfect!</Text>
-                <Button
-                  size="sm"
-                  colorScheme="purple"
-                  onClick={createUser}
-                  isLoading={isCreatingUser}
-                  loadingText="Creating account..."
-                >
-                  Create Account
-                </Button>
-              </Box>
-            )
-          ) : (
-            <Text>Could not retrieve your status. Sorry for that!</Text>
-          )}
-        </Box>
-      )}
+    <Container maxW="container.lg" py={8}>
+      <VStack spacing={8} align="stretch">
+        {/* <Box>
+          <Heading as="h1" size="xl" mb={2}>
+            Kult
+          </Heading>
+          <Text fontSize="lg" color="gray.400">
+            Store the books, movies and artworks you loved!
+          </Text>
+          <Divider my={4} borderColor="whiteAlpha.300" />
+        </Box> */}
+
+        {isConnected && userStatus?.exists ? (
+          <ArtworkList />
+        ) : !isConnected ? (
+          <Box
+            p={8}
+            borderWidth="1px"
+            borderRadius="lg"
+            borderColor="whiteAlpha.300"
+            bg="whiteAlpha.100"
+            textAlign="center"
+          >
+            <Text fontSize="lg" mb={4}>
+              Please login
+            </Text>
+          </Box>
+        ) : null}
+      </VStack>
     </Container>
   )
 }

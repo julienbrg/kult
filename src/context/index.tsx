@@ -2,23 +2,7 @@
 
 import { createAppKit } from '@reown/appkit/react'
 import { EthersAdapter } from '@reown/appkit-adapter-ethers'
-import {
-  optimism,
-  zksync,
-  base,
-  arbitrum,
-  gnosis,
-  polygon,
-  polygonZkEvm,
-  mantle,
-  celo,
-  avalanche,
-  degen,
-  sepolia,
-  optimismSepolia,
-  arbitrumSepolia,
-  baseSepolia,
-} from '@reown/appkit/networks'
+import { optimism } from '@reown/appkit/networks'
 import { type ReactNode, memo } from 'react'
 import { ChakraProvider, extendTheme } from '@chakra-ui/react'
 
@@ -32,24 +16,8 @@ const ethersAdapter = new EthersAdapter()
 createAppKit({
   adapters: [ethersAdapter],
   projectId,
-  networks: [
-    optimism,
-    zksync,
-    base,
-    arbitrum,
-    gnosis,
-    polygon,
-    polygonZkEvm,
-    mantle,
-    celo,
-    avalanche,
-    degen,
-    sepolia,
-    optimismSepolia,
-    arbitrumSepolia,
-    baseSepolia,
-  ],
-  defaultNetwork: sepolia,
+  networks: [optimism],
+  defaultNetwork: optimism,
   metadata: {
     name: 'Kult',
     description: 'Store the books, movies and artworks you loved!',
