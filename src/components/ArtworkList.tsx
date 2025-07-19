@@ -27,11 +27,12 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
 } from '@chakra-ui/react'
-import { DeleteIcon, StarIcon, AddIcon, EditIcon } from '@chakra-ui/icons'
+import { DeleteIcon, StarIcon, AddIcon, EditIcon, ExternalLinkIcon } from '@chakra-ui/icons'
 import { useAppKitAccount } from '@reown/appkit/react'
 import { useTranslation } from '@/hooks/useTranslation'
 import AddArtwork from './AddArtwork'
 import EditArtwork from './EditArtwork'
+import ShareArtworkModal from './ShareArtworkModal'
 import { useRef } from 'react'
 
 interface Artwork {
@@ -52,6 +53,7 @@ export default function ArtworkList() {
   const [activeType, setActiveType] = useState<string | null>(null)
   const [artworkToDelete, setArtworkToDelete] = useState<Artwork | null>(null)
   const [artworkToEdit, setArtworkToEdit] = useState<Artwork | null>(null)
+  const [artworkToShare, setArtworkToShare] = useState<Artwork | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const { address, isConnected } = useAppKitAccount()
@@ -60,6 +62,7 @@ export default function ArtworkList() {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
+  const { isOpen: isShareOpen, onOpen: onShareOpen, onClose: onShareClose } = useDisclosure()
   const cancelRef = useRef<HTMLButtonElement>(null)
 
   const fetchArtworks = async () => {
@@ -111,6 +114,15 @@ export default function ArtworkList() {
   const handleEditClick = (artwork: Artwork) => {
     setArtworkToEdit(artwork)
     onEditOpen()
+  }
+
+  const handleShareClick = (artwork: Artwork) => {
+    setArtworkToShare(artwork)
+    onShareOpen()
+  }
+
+  const handleArtworkClick = (artwork: Artwork) => {
+    handleShareClick(artwork)
   }
 
   const handleConfirmDelete = async () => {
@@ -290,40 +302,38 @@ export default function ArtworkList() {
                 borderColor="whiteAlpha.300"
                 bg="whiteAlpha.100"
                 transition="all 0.2s"
-                _hover={{ bg: 'whiteAlpha.200' }}
+                _hover={{ bg: 'whiteAlpha.200', cursor: 'pointer' }}
+                onClick={() => handleArtworkClick(artwork)}
+                position="relative"
               >
-                <Flex justify="space-between" align="flex-start">
-                  <Heading as="h3" size="md" isTruncated>
-                    {artwork.name}
-                  </Heading>
-                  <HStack spacing={1}>
-                    <Tooltip label="Edit artwork">
-                      <IconButton
-                        icon={<EditIcon />}
-                        aria-label="Edit artwork"
-                        variant="ghost"
-                        size="sm"
-                        color="blue.400"
-                        onClick={() => handleEditClick(artwork)}
-                      />
-                    </Tooltip>
-                    <Tooltip label="Remove from collection">
-                      <IconButton
-                        icon={<DeleteIcon />}
-                        aria-label="Delete artwork"
-                        variant="ghost"
-                        size="sm"
-                        color="red.400"
-                        onClick={() => handleDeleteClick(artwork)}
-                      />
-                    </Tooltip>
-                  </HStack>
-                </Flex>
+                {/* Share button at top right */}
+                <Box position="absolute" top={2} right={2}>
+                  <Tooltip label="Share artwork">
+                    <IconButton
+                      icon={<ExternalLinkIcon />}
+                      aria-label="Share artwork"
+                      variant="ghost"
+                      size="sm"
+                      color="green.400"
+                      onClick={e => {
+                        e.stopPropagation()
+                        handleShareClick(artwork)
+                      }}
+                    />
+                  </Tooltip>
+                </Box>
 
+                {/* Title */}
+                <Heading as="h3" size="md" isTruncated pr={10}>
+                  {artwork.name}
+                </Heading>
+
+                {/* Author */}
                 <Text mt={2} fontWeight="medium">
                   {artwork.author}
                 </Text>
 
+                {/* Type and Year */}
                 <Flex mt={2} justify="space-between" align="center">
                   <Badge colorScheme={getTypeColor(artwork.type)} px={2} py={1} borderRadius="full">
                     {artwork.type}
@@ -333,13 +343,92 @@ export default function ArtworkList() {
                   </Text>
                 </Flex>
 
+                {/* Description */}
                 {artwork.description && (
                   <Text mt={3} fontSize="sm" color="gray.300" noOfLines={2}>
                     {artwork.description}
                   </Text>
                 )}
 
-                {artwork.rating && <Box mt={3}>{renderRatingStars(artwork.rating)}</Box>}
+                {/* Bottom section with stars and edit/delete buttons */}
+                {artwork.rating && (
+                  <Flex mt={3} justify="space-between" align="center">
+                    {/* Rating stars on the left */}
+                    <HStack spacing={1}>
+                      {[...Array(5)].map((_, i) => (
+                        <StarIcon
+                          key={i}
+                          color={i < artwork.rating! ? 'yellow.400' : 'gray.500'}
+                          boxSize="14px"
+                        />
+                      ))}
+                    </HStack>
+
+                    {/* Edit and Delete buttons on the right */}
+                    <HStack spacing={1}>
+                      <Tooltip label="Edit artwork">
+                        <IconButton
+                          icon={<EditIcon />}
+                          aria-label="Edit artwork"
+                          variant="ghost"
+                          size="sm"
+                          color="blue.400"
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleEditClick(artwork)
+                          }}
+                        />
+                      </Tooltip>
+                      <Tooltip label="Remove from collection">
+                        <IconButton
+                          icon={<DeleteIcon />}
+                          aria-label="Delete artwork"
+                          variant="ghost"
+                          size="sm"
+                          color="red.400"
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleDeleteClick(artwork)
+                          }}
+                        />
+                      </Tooltip>
+                    </HStack>
+                  </Flex>
+                )}
+
+                {/* If no rating, still show edit/delete buttons at bottom */}
+                {!artwork.rating && (
+                  <Flex mt={3} justify="flex-end">
+                    <HStack spacing={1}>
+                      <Tooltip label="Edit artwork">
+                        <IconButton
+                          icon={<EditIcon />}
+                          aria-label="Edit artwork"
+                          variant="ghost"
+                          size="sm"
+                          color="blue.400"
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleEditClick(artwork)
+                          }}
+                        />
+                      </Tooltip>
+                      <Tooltip label="Remove from collection">
+                        <IconButton
+                          icon={<DeleteIcon />}
+                          aria-label="Delete artwork"
+                          variant="ghost"
+                          size="sm"
+                          color="red.400"
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleDeleteClick(artwork)
+                          }}
+                        />
+                      </Tooltip>
+                    </HStack>
+                  </Flex>
+                )}
               </Box>
             ))}
           </SimpleGrid>
@@ -370,6 +459,9 @@ export default function ArtworkList() {
         onArtworkUpdated={handleArtworkUpdated}
         artwork={artworkToEdit}
       />
+
+      {/* Share Artwork Modal */}
+      <ShareArtworkModal isOpen={isShareOpen} onClose={onShareClose} artwork={artworkToShare} />
 
       {/* Delete Confirmation Alert Dialog */}
       <AlertDialog isOpen={isDeleteOpen} leastDestructiveRef={cancelRef} onClose={onDeleteClose}>
