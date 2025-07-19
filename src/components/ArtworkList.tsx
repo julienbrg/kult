@@ -27,10 +27,11 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
 } from '@chakra-ui/react'
-import { DeleteIcon, StarIcon, AddIcon } from '@chakra-ui/icons'
+import { DeleteIcon, StarIcon, AddIcon, EditIcon } from '@chakra-ui/icons'
 import { useAppKitAccount } from '@reown/appkit/react'
 import { useTranslation } from '@/hooks/useTranslation'
 import AddArtwork from './AddArtwork'
+import EditArtwork from './EditArtwork'
 import { useRef } from 'react'
 
 interface Artwork {
@@ -50,6 +51,7 @@ export default function ArtworkList() {
   const [isLoading, setIsLoading] = useState(false)
   const [activeType, setActiveType] = useState<string | null>(null)
   const [artworkToDelete, setArtworkToDelete] = useState<Artwork | null>(null)
+  const [artworkToEdit, setArtworkToEdit] = useState<Artwork | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const { address, isConnected } = useAppKitAccount()
@@ -57,6 +59,7 @@ export default function ArtworkList() {
   const t = useTranslation()
   const { isOpen, onOpen, onClose } = useDisclosure()
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
+  const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
   const cancelRef = useRef<HTMLButtonElement>(null)
 
   const fetchArtworks = async () => {
@@ -103,6 +106,11 @@ export default function ArtworkList() {
   const handleDeleteClick = (artwork: Artwork) => {
     setArtworkToDelete(artwork)
     onDeleteOpen()
+  }
+
+  const handleEditClick = (artwork: Artwork) => {
+    setArtworkToEdit(artwork)
+    onEditOpen()
   }
 
   const handleConfirmDelete = async () => {
@@ -204,6 +212,10 @@ export default function ArtworkList() {
     fetchArtworks()
   }
 
+  const handleArtworkUpdated = () => {
+    fetchArtworks()
+  }
+
   return (
     <Box>
       <Tabs variant="unstyled" mb={6}>
@@ -284,16 +296,28 @@ export default function ArtworkList() {
                   <Heading as="h3" size="md" isTruncated>
                     {artwork.name}
                   </Heading>
-                  <Tooltip label="Remove from collection">
-                    <IconButton
-                      icon={<DeleteIcon />}
-                      aria-label="Delete artwork"
-                      variant="ghost"
-                      size="sm"
-                      color="red.400"
-                      onClick={() => handleDeleteClick(artwork)}
-                    />
-                  </Tooltip>
+                  <HStack spacing={1}>
+                    <Tooltip label="Edit artwork">
+                      <IconButton
+                        icon={<EditIcon />}
+                        aria-label="Edit artwork"
+                        variant="ghost"
+                        size="sm"
+                        color="blue.400"
+                        onClick={() => handleEditClick(artwork)}
+                      />
+                    </Tooltip>
+                    <Tooltip label="Remove from collection">
+                      <IconButton
+                        icon={<DeleteIcon />}
+                        aria-label="Delete artwork"
+                        variant="ghost"
+                        size="sm"
+                        color="red.400"
+                        onClick={() => handleDeleteClick(artwork)}
+                      />
+                    </Tooltip>
+                  </HStack>
                 </Flex>
 
                 <Text mt={2} fontWeight="medium">
@@ -338,6 +362,14 @@ export default function ArtworkList() {
 
       {/* Add Artwork Modal */}
       <AddArtwork isOpen={isOpen} onClose={onClose} onArtworkAdded={handleArtworkAdded} />
+
+      {/* Edit Artwork Modal */}
+      <EditArtwork
+        isOpen={isEditOpen}
+        onClose={onEditClose}
+        onArtworkUpdated={handleArtworkUpdated}
+        artwork={artworkToEdit}
+      />
 
       {/* Delete Confirmation Alert Dialog */}
       <AlertDialog isOpen={isDeleteOpen} leastDestructiveRef={cancelRef} onClose={onDeleteClose}>
