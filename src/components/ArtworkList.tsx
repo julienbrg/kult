@@ -17,16 +17,21 @@ import {
   Tabs,
   TabList,
   Tab,
-  TabPanels,
-  TabPanel,
   Tooltip,
   useDisclosure,
   Center,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
 } from '@chakra-ui/react'
 import { DeleteIcon, StarIcon, AddIcon } from '@chakra-ui/icons'
 import { useAppKitAccount } from '@reown/appkit/react'
 import { useTranslation } from '@/hooks/useTranslation'
 import AddArtwork from './AddArtwork'
+import { useRef } from 'react'
 
 interface Artwork {
   id: number
@@ -44,10 +49,15 @@ export default function ArtworkList() {
   const [allArtworks, setAllArtworks] = useState<Artwork[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [activeType, setActiveType] = useState<string | null>(null)
+  const [artworkToDelete, setArtworkToDelete] = useState<Artwork | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const { address, isConnected } = useAppKitAccount()
   const toast = useToast()
   const t = useTranslation()
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
+  const cancelRef = useRef<HTMLButtonElement>(null)
 
   const fetchArtworks = async () => {
     if (!address) return
@@ -90,9 +100,15 @@ export default function ArtworkList() {
     }
   }
 
-  const handleDelete = async (id: number) => {
-    if (!address) return
+  const handleDeleteClick = (artwork: Artwork) => {
+    setArtworkToDelete(artwork)
+    onDeleteOpen()
+  }
 
+  const handleConfirmDelete = async () => {
+    if (!address || !artworkToDelete) return
+
+    setIsDeleting(true)
     try {
       const response = await fetch('/api/artwork/delete', {
         method: 'DELETE',
@@ -100,7 +116,7 @@ export default function ArtworkList() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          id,
+          id: artworkToDelete.id,
           walletAddress: address,
         }),
       })
@@ -108,8 +124,8 @@ export default function ArtworkList() {
       const data = await response.json()
 
       if (response.ok) {
-        setArtworks(prev => prev.filter(artwork => artwork.id !== id))
-        setAllArtworks(prev => prev.filter(artwork => artwork.id !== id))
+        setArtworks(prev => prev.filter(artwork => artwork.id !== artworkToDelete.id))
+        setAllArtworks(prev => prev.filter(artwork => artwork.id !== artworkToDelete.id))
 
         toast({
           title: 'Success',
@@ -136,6 +152,10 @@ export default function ArtworkList() {
         duration: 3000,
         isClosable: true,
       })
+    } finally {
+      setIsDeleting(false)
+      setArtworkToDelete(null)
+      onDeleteClose()
     }
   }
 
@@ -271,7 +291,7 @@ export default function ArtworkList() {
                       variant="ghost"
                       size="sm"
                       color="red.400"
-                      onClick={() => handleDelete(artwork.id)}
+                      onClick={() => handleDeleteClick(artwork)}
                     />
                   </Tooltip>
                 </Flex>
@@ -316,7 +336,45 @@ export default function ArtworkList() {
         </>
       )}
 
+      {/* Add Artwork Modal */}
       <AddArtwork isOpen={isOpen} onClose={onClose} onArtworkAdded={handleArtworkAdded} />
+
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog isOpen={isDeleteOpen} leastDestructiveRef={cancelRef} onClose={onDeleteClose}>
+        <AlertDialogOverlay>
+          <AlertDialogContent
+            bg="black"
+            color="white"
+            borderColor="whiteAlpha.300"
+            borderWidth="1px"
+          >
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Artwork
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to remove <strong>&quot;{artworkToDelete?.name}&quot;</strong>{' '}
+              by <strong>{artworkToDelete?.author}</strong> from your collection? This action cannot
+              be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onDeleteClose}>
+                Cancel
+              </Button>
+              <Button
+                colorScheme="red"
+                onClick={handleConfirmDelete}
+                ml={3}
+                isLoading={isDeleting}
+                loadingText="Deleting..."
+              >
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   )
 }
